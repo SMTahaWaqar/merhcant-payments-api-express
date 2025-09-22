@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model WebhookEndpoint {
+  id            String   @id @default(cuid())
+  url           String
+  signingSecret String
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  deliveries    WebhookDelivery[]
+}
+
+model Event {
+  id         String   @id @default(cuid())
+  type       String
+  payload    Json
+  createdAt  DateTime @default(now())
+  deliveries WebhookDelivery[]
+}
+
+model WebhookDelivery {
+  id                String   @id @default(cuid())
+  status            String
+  attempt           Int
+  responseCode      Int?
+  responseMs        Int?
+  errorMessage      String?
+  nextRetryAt       DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  webhookEndpointId String
+  eventId           String
+
+  webhookEndpoint   WebhookEndpoint @relation(fields: [webhookEndpointId], references: [id])
+  event             Event           @relation(fields: [eventId], references: [id])
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  status        String   @default("PENDING") // PENDING | CONFIRMED | FAILED | REFUNDED
+  fiatAmount    Decimal  @db.Decimal(18, 2)
+  fiatCurrency  String   @default("USD")
+  cryptoAmount  Decimal  @db.Decimal(38, 18)
+  cryptoSymbol  String   // e.g., "ETH", "BTC"
+  address       String   // destination address
+  txHash        String?  // when confirmed
+  network       String   @default("sepolia")
+}
+
+model Payout {
+  id         String   @id @default(cuid())
+  amount     Float
+  currency   String   @default("USD")
+  status     String   @default("PENDING") // PENDING | SENT | FAILED
+  createdAt  DateTime @default(now())
+}
+
+model ApiKey {
+  id         String   @id @default(cuid())
+  key        String   // demo only (plain). For prod you'd hash.
+  prefix     String   // last 4 for display
+  createdAt  DateTime @default(now())
+}

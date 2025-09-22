@@ -14,7 +14,7 @@ function buildEvent(type, data) {
 }
 
 router.post('/seed', async (req, res) => {
-    const url = req.body?.url || process.env.WEBHOOK_TEST_URL || 'http://localhost:3001/dev/receiver';
+    const url = req.body?.url || process.env.WEBHOOK_TEST_URL || 'http://52.77.238.249:3001/dev/receiver';
     const signingSecret = req.body?.signingSecret || 'test_secret_23';
 
     try {
